@@ -9,7 +9,6 @@ android {
 
     defaultConfig {
         minSdkVersion 17
-        targetSdk 36
     }
 
     buildFeatures {
@@ -19,13 +18,14 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
     }
 
     sourceSets {
@@ -40,6 +40,7 @@ android {
 
         // Disable specific lint checks that are causing issues
         disable 'LongLogTag'
+        targetSdk = 36
     }
 
     // Publish only the release variant and include sources jar
@@ -48,10 +49,13 @@ android {
             withSourcesJar()
         }
     }
+    testOptions {
+        targetSdk = 36
+    }
 }
 
 dependencies {
-
+    implementation 'androidx.appcompat:appcompat:1.7.1'
 }
 
 publishing {
@@ -66,26 +70,4 @@ publishing {
             }
         }
     }
-}
-
-if (!System.getenv("JITPACK")) {
-    tasks.register("updateGitSubmodules") {
-        doFirst {
-            description 'Syncs git submodules'
-            exec {
-                workingDir "${rootProject.rootDir.absolutePath}"
-                commandLine 'git', 'submodule', 'sync', '--recursive'
-            }
-        }
-        doLast {
-            description 'Updates (and inits) git submodules'
-            exec {
-                workingDir "${rootProject.rootDir.absolutePath}"
-                commandLine 'git', 'submodule', 'update', '--init', '--recursive'
-            }
-            println "Project submodules updated!"
-        }
-    }
-
-    preBuild.dependsOn updateGitSubmodules
 }
