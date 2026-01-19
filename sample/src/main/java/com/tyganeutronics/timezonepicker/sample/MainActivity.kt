@@ -36,7 +36,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
             fragment.arguments = this.fragmentArguments()
             fragment.setOnTimeZoneSetListener(this)
 
-            val transaction = fragmentManager.beginTransaction()
+            val transaction = supportFragmentManager.beginTransaction()
             transaction.replace(R.id.fragment_container, fragment)
             transaction.commit()
         }
@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
                     timeZonePickerDialog.arguments = this.fragmentArguments()
                     timeZonePickerDialog.setOnTimeZoneSetListener(this)
                     timeZonePickerDialog.show(
-                        fragmentManager,
+                        supportFragmentManager,
                         TimeZonePickerBottomSheetFragment.TAG
                     )
                 }
@@ -65,7 +65,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
                     val timeZonePickerDialog = TimeZonePickerAppCompatFragment()
                     timeZonePickerDialog.arguments = this.fragmentArguments()
                     timeZonePickerDialog.setOnTimeZoneSetListener(this)
-                    timeZonePickerDialog.show(fragmentManager, TimeZonePickerAppCompatFragment.TAG)
+                    timeZonePickerDialog.show(supportFragmentManager, TimeZonePickerAppCompatFragment.TAG)
                 }
 
                 R.id.btn_privacy_policy -> {

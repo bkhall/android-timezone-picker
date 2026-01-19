@@ -5,6 +5,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
+
 import com.android.timezonepicker.TimeZonePickerDialog;
 
 import java.util.SimpleTimeZone;
@@ -39,7 +41,7 @@ public class TimeZonePickerBaseFragment extends TimeZonePickerDialog implements 
 
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         long timeMillis = 0;
         String timeZone = null;
