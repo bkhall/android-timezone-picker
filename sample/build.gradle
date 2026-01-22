@@ -8,12 +8,10 @@ android {
 
     defaultConfig {
         applicationId "com.tyganeutronics.timezonepicker.sample"
-        minSdk 21
+        minSdk 26
         targetSdk 36
         versionCode 7
         versionName "$library_version"
-
-        multiDexEnabled true
     }
 
     buildTypes {
@@ -25,12 +23,13 @@ android {
     compileOptions {
         coreLibraryDesugaringEnabled true
 
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
     }
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17
+        jvmTarget = JavaVersion.VERSION_21
     }
+
     namespace 'com.tyganeutronics.timezonepicker.sample'
 }
 
@@ -39,11 +38,7 @@ dependencies {
     //desugaring
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
 
-    implementation 'androidx.core:core-ktx:1.17.0'
-    implementation 'com.google.android.material:material:1.13.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation project(path: ':library')
 
-    //multi dex
-    implementation 'androidx.multidex:multidex:2.0.1'
+    implementation project(path: ':library')
 }

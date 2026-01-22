@@ -1,3 +1,0 @@
-[submodule "base-library/src/main"]
-	path = base-library/src/main
-	url = https://android.googlesource.com/platform/frameworks/opt/timezonepicker.git

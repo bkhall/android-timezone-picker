@@ -42,7 +42,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
         }
 
         applyWindowInsets()
-
     }
 
     override fun onClick(view: View?) {
