@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name" translatable="false">Timezone Picker</string>
 
-    <string name="picker_bottomSheet" translatable="false">Bottom Sheet Picker</string>
-    <string name="picker_dialog" translatable="false">Dialog Picker</string>
+    <string name="picker_bottomSheet" translatable="false">Bottom Sheet</string>
+    <string name="picker_dialog" translatable="false">Standard Dialog</string>
     <string name="txt_timezone" translatable="false">Selected Timezone</string>
 
     <string name="title_fragment" translatable="false">Fragment</string>

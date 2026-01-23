@@ -1,61 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layout_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:id="@+id/layout_container"
     tools:context=".MainActivity">
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:showDividers="middle"
-        app:dividerPadding="8dp">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <androidx.appcompat.widget.LinearLayoutCompat
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
-            android:minHeight="300dp"
             android:orientation="vertical">
 
-            <androidx.appcompat.widget.AppCompatTextView
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
                 android:text="@string/title_fragment"
                 android:textAppearance="@style/TextAppearance.AppCompat.Title" />
 
-            <FrameLayout
+            <androidx.fragment.app.FragmentContainerView
                 android:id="@+id/fragment_container"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="300dp" />
 
-        </androidx.appcompat.widget.LinearLayoutCompat>
+        </LinearLayout>
 
-        <androidx.appcompat.widget.LinearLayoutCompat
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="bottom|center_horizontal"
+            android:gravity="center"
             android:orientation="vertical">
 
-            <androidx.appcompat.widget.AppCompatTextView
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
                 android:text="@string/title_dialog"
                 android:textAppearance="@style/TextAppearance.AppCompat.Title" />
 
-            <androidx.appcompat.widget.LinearLayoutCompat
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_horizontal"
                 android:orientation="horizontal">
 
-                <androidx.appcompat.widget.AppCompatButton
+                <Button
                     android:id="@+id/btn_bottomsheet_picker"
                     style="@style/Widget.AppCompat.Button.Colored"
                     android:layout_width="0dp"
@@ -63,7 +58,7 @@
                     android:layout_weight="1"
                     android:text="@string/picker_bottomSheet" />
 
-                <androidx.appcompat.widget.AppCompatButton
+                <Button
                     android:id="@+id/btn_dialog_picker"
                     style="@style/Widget.AppCompat.Button.Colored"
                     android:layout_width="0dp"
@@ -71,17 +66,17 @@
                     android:layout_weight="1"
                     android:text="@string/picker_dialog" />
 
-            </androidx.appcompat.widget.LinearLayoutCompat>
+            </LinearLayout>
 
-        </androidx.appcompat.widget.LinearLayoutCompat>
+        </LinearLayout>
 
-        <androidx.appcompat.widget.LinearLayoutCompat
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="bottom|center_horizontal"
             android:orientation="vertical">
 
-            <androidx.appcompat.widget.AppCompatTextView
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
@@ -94,9 +89,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
-        </androidx.appcompat.widget.LinearLayoutCompat>
+        </LinearLayout>
 
-        <androidx.appcompat.widget.AppCompatButton
+        <Button
             android:id="@+id/btn_privacy_policy"
             style="@style/Widget.AppCompat.Button.Colored"
             android:layout_width="wrap_content"
@@ -104,6 +99,6 @@
             android:layout_gravity="center_horizontal"
             android:text="@string/privacy_policy" />
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
+    </LinearLayout>
 
-</ScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

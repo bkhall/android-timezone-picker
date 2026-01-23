@@ -38,8 +38,8 @@ import java.util.LinkedHashSet;
 
 public class TimeZoneResultAdapter extends BaseAdapter implements OnItemClickListener,
         OnSetFilterListener {
-    private static final String  TAG                = "TimeZoneResultAdapter";
-    private static final boolean DEBUG              = false;
+    private static final String  TAG                = TimeZoneResultAdapter.class.getSimpleName();
+    private static final boolean DEBUG              = true;
     private static final int     VIEW_TAG_TIME_ZONE = R.id.time_zone;
     private static final int     EMPTY_INDEX        = -100;
 
@@ -301,7 +301,8 @@ public class TimeZoneResultAdapter extends BaseAdapter implements OnItemClickLis
             if (index > -1) {
                 location = location.substring(index + 1);
 
-                location = location.replace("_", " ");
+                location = location.replace("/", " • ")
+                        .replace("_", " ");
             }
         }
 

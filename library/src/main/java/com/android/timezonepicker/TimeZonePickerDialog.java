@@ -18,7 +18,7 @@ package com.android.timezonepicker;
 
 import android.app.Dialog;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,8 +32,9 @@ public class TimeZonePickerDialog extends DialogFragment implements
         TimeZonePickerView.OnTimeZoneSetListener {
     public static final String TAG = TimeZonePickerDialog.class.getSimpleName();
 
-    public static final String BUNDLE_START_TIME_MILLIS = "bundle_event_start_time";
-    public static final String BUNDLE_TIME_ZONE         = "bundle_event_time_zone";
+    protected static final String BUNDLE_START_TIME_MILLIS = "bundle_event_start_time";
+    protected static final String BUNDLE_TIME_ZONE         = "bundle_event_time_zone";
+    protected static final String BUNDLE_SHOW_NEAR_LIST    = "bundle_show_near_list";
 
     private static final String KEY_HAS_RESULTS        = "has_results";
     private static final String KEY_LAST_FILTER_STRING = "last_filter_string";
@@ -52,20 +53,22 @@ public class TimeZonePickerDialog extends DialogFragment implements
         mTimeZoneSetListener = l;
     }
 
-    public TimeZonePickerDialog() {
-        super();
-    }
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        long timeMillis = 0;
-        String timeZone = null;
+        long timeMillis;
+        String timeZone;
+        boolean showNearList;
 
         Bundle b = getArguments();
-        if (b != null) {
+        if (b == null) {
+            timeMillis = 0;
+            timeZone = null;
+            showNearList = true;
+        } else {
             timeMillis = b.getLong(BUNDLE_START_TIME_MILLIS);
             timeZone = b.getString(BUNDLE_TIME_ZONE);
+            showNearList = b.getBoolean(BUNDLE_SHOW_NEAR_LIST) | TextUtils.isEmpty(timeZone);
         }
 
         boolean hideFilterSearch = false;
@@ -74,7 +77,7 @@ public class TimeZonePickerDialog extends DialogFragment implements
             hideFilterSearch = savedInstanceState.getBoolean(KEY_HIDE_FILTER_SEARCH);
         }
 
-        mView = new TimeZonePickerView(requireContext(), timeZone, timeMillis, this,
+        mView = new TimeZonePickerView(requireContext(), timeZone, timeMillis, showNearList, this,
                 hideFilterSearch);
 
         if (savedInstanceState != null && savedInstanceState.getBoolean(KEY_HAS_RESULTS, false)) {
@@ -104,6 +107,7 @@ public class TimeZonePickerDialog extends DialogFragment implements
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         Dialog dialog = super.onCreateDialog(savedInstanceState);
+        dialog.setCanceledOnTouchOutside(false);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
 

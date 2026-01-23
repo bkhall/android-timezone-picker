@@ -36,7 +36,7 @@ public class TimeZoneInfo implements Comparable<TimeZoneInfo> {
     private static final int     GMT_TEXT_COLOR     = TimeZonePickerUtils.GMT_TEXT_COLOR;
     private static final int     DST_SYMBOL_COLOR   = TimeZonePickerUtils.DST_SYMBOL_COLOR;
     private static final char    SEPARATOR          = ',';
-    private static final String  TAG                = null;
+    private static final String  TAG                = TimeZoneInfo.class.getSimpleName();
     public static        int     NUM_OF_TRANSITIONS = 6;
     public static        long    time               = System.currentTimeMillis() / 1000;
     public static        boolean is24HourFormat;

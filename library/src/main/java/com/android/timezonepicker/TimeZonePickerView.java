@@ -34,6 +34,9 @@ import android.widget.ListView;
 
 import com.tyganeutronics.timezonepicker.R;
 
+import java.time.ZoneId;
+import java.util.TimeZone;
+
 import androidx.annotation.Nullable;
 
 @SuppressLint("ViewConstructor")
@@ -55,13 +58,14 @@ public class TimeZonePickerView extends LinearLayout implements TextWatcher, OnI
     }
 
     public TimeZonePickerView(Context context, String timeZone, long timeMillis,
-                              OnTimeZoneSetListener l,
+                              boolean showNearList, OnTimeZoneSetListener l,
                               boolean hideFilterSearch) {
-        this(context, null, timeZone, timeMillis, l, hideFilterSearch);
+        this(context, null, timeZone, timeMillis, showNearList, l, hideFilterSearch);
     }
 
     public TimeZonePickerView(Context context, @Nullable AttributeSet attrs, String timeZone,
-                              long timeMillis, OnTimeZoneSetListener l, boolean hideFilterSearch) {
+                              long timeMillis, boolean showNearList, OnTimeZoneSetListener l,
+                              boolean hideFilterSearch) {
         super(context, attrs);
 
         LayoutInflater inflater = LayoutInflater.from(getContext());
@@ -87,6 +91,14 @@ public class TimeZonePickerView extends LinearLayout implements TextWatcher, OnI
 
         mClearButton = findViewById(R.id.clear_search);
         mClearButton.setOnClickListener(v -> mAutoCompleteTextView.getEditableText().clear());
+
+        if (showNearList) {
+            ZoneId zid = TimeZone.getDefault().toZoneId();
+            int index = tzd.findIndexByTimeZoneIdSlow(zid.getId());
+            TimeZoneInfo tzi = tzd.get(index);
+
+            mResultAdapter.onSetFilter(1, tzi.mCountry, 0);
+        }
     }
 
     public void showFilterResults(int type, String string, int time) {

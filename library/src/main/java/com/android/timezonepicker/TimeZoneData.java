@@ -40,7 +40,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 public class TimeZoneData {
-    private static final String  TAG                 = "TimeZoneData";
+    private static final String  TAG                 = TimeZoneData.class.getSimpleName();
     private static final boolean DEBUG               = false;
     private static final int     OFFSET_ARRAY_OFFSET = 20;
 

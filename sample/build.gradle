@@ -30,6 +30,10 @@ android {
         jvmTarget = JavaVersion.VERSION_21
     }
 
+    buildFeatures {
+        buildConfig true
+    }
+
     namespace 'com.tyganeutronics.timezonepicker.sample'
 }
 

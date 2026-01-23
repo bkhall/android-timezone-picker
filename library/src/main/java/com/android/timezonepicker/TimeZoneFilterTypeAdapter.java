@@ -134,11 +134,9 @@ public class TimeZoneFilterTypeAdapter extends BaseAdapter implements Filterable
         vh.str = filter.constraint;
         vh.time = filter.time;
         vh.strTextView.setText(filter.constraint);
+
         return v;
     }
-
-    OnClickListener mDummyListener = v -> {
-    };
 
     // Implements OnClickListener
 
@@ -149,8 +147,10 @@ public class TimeZoneFilterTypeAdapter extends BaseAdapter implements Filterable
     public void onClick(View v) {
         if (mListener != null && v != null) {
             ViewHolder vh = (ViewHolder) v.getTag();
+
             mListener.onSetFilter(vh.filterType, vh.str, vh.time);
         }
+
         notifyDataSetInvalidated();
     }
 
@@ -179,12 +179,13 @@ public class TimeZoneFilterTypeAdapter extends BaseAdapter implements Filterable
             if (TextUtils.isEmpty(prefixString)) {
                 results.values = null;
                 results.count = 0;
+
                 return results;
             }
 
             // TODO Perf - we can loop through the filtered list if the new
             // search string starts with the old search string
-            ArrayList<FilterTypeResult> filtered = new ArrayList<FilterTypeResult>();
+            ArrayList<FilterTypeResult> filtered = new ArrayList<>();
 
             // ////////////////////////////////////////
             // Search by local time and GMT offset
@@ -252,6 +253,7 @@ public class TimeZoneFilterTypeAdapter extends BaseAdapter implements Filterable
 
             results.values = filtered;
             results.count = filtered.size();
+
             return results;
         }
 
@@ -389,13 +391,13 @@ public class TimeZoneFilterTypeAdapter extends BaseAdapter implements Filterable
             if (DEBUG) {
                 Log.d(TAG, "Parsing " + str + " -> " + negativeMultiplier * num);
             }
+
             return negativeMultiplier * num;
         }
 
         @SuppressWarnings("unchecked")
         @Override
-        protected void publishResults(CharSequence constraint, FilterResults
-                results) {
+        protected void publishResults(CharSequence constraint, FilterResults results) {
             if (results.values == null || results.count == 0) {
                 if (mListener != null) {
                     int filterType;
@@ -416,6 +418,7 @@ public class TimeZoneFilterTypeAdapter extends BaseAdapter implements Filterable
                             + " [" + constraint);
                 }
             }
+
             mLiveResultsCount = results.count;
 
             if (results.count > 0) {

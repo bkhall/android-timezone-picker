@@ -31,7 +31,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 public class TimeZonePickerUtils {
-    private static final String TAG = "TimeZonePickerUtils";
+    private static final String TAG = TimeZonePickerUtils.class.getSimpleName();
 
     public static final  int     GMT_TEXT_COLOR    = 0xFF888888;
     public static final  int     DST_SYMBOL_COLOR  = 0xFFBFBFBF;
