@@ -100,23 +100,6 @@ public class TimeZonePickerDialog extends DialogFragment implements
         }
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-
-        if (!getShowsDialog()) {
-            return;
-        }
-
-        DisplayMetrics metrics = getResources().getDisplayMetrics();
-
-        WindowManager.LayoutParams params = getDialog().getWindow().getAttributes();
-        params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-        params.width = (int) (metrics.widthPixels * 0.875);
-
-        getDialog().getWindow().setAttributes(params);
-    }
-
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
