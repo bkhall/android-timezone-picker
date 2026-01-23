@@ -2,7 +2,9 @@ package com.tyganeutronics.timezonepicker;
 
 import android.os.Bundle;
 
-public class TimeZonePickerFragment extends TimeZonePickerBaseFragment {
+import com.android.timezonepicker.TimeZonePickerDialog;
+
+public class TimeZonePickerFragment extends TimeZonePickerDialog {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

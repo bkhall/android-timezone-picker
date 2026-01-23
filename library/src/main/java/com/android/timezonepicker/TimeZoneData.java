@@ -24,6 +24,8 @@ import android.text.format.DateUtils;
 import android.util.Log;
 import android.util.SparseArray;
 
+import com.tyganeutronics.timezonepicker.R;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,30 +40,33 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 public class TimeZoneData {
-    private static final String TAG = "TimeZoneData";
-    private static final boolean DEBUG = false;
-    private static final int OFFSET_ARRAY_OFFSET = 20;
+    private static final String  TAG                 = "TimeZoneData";
+    private static final boolean DEBUG               = false;
+    private static final int     OFFSET_ARRAY_OFFSET = 20;
 
     private static final String PALESTINE_COUNTRY_CODE = "PS";
 
 
-    ArrayList<TimeZoneInfo> mTimeZones;
+    ArrayList<TimeZoneInfo>                   mTimeZones;
     LinkedHashMap<String, ArrayList<Integer>> mTimeZonesByCountry;
-    HashSet<String> mTimeZoneNames = new HashSet<String>();
+    HashSet<String>                           mTimeZoneNames = new HashSet<String>();
 
-    private long mTimeMillis;
-    private HashMap<String, String> mCountryCodeToNameMap = new HashMap<String, String>();
+    private       long                    mTimeMillis;
+    private final HashMap<String, String> mCountryCodeToNameMap = new HashMap<>();
 
-    public String mDefaultTimeZoneId;
-    public static boolean is24HourFormat;
-    private TimeZoneInfo mDefaultTimeZoneInfo;
-    private String mAlternateDefaultTimeZoneId;
-    private String mDefaultTimeZoneCountry;
-    private HashMap<String, TimeZoneInfo> mTimeZonesById;
-    private boolean[] mHasTimeZonesInHrOffset = new boolean[40];
+    public        String                        mDefaultTimeZoneId;
+    public static boolean                       is24HourFormat;
+    private       TimeZoneInfo                  mDefaultTimeZoneInfo;
+    private       String                        mAlternateDefaultTimeZoneId;
+    private       String                        mDefaultTimeZoneCountry;
+    private       HashMap<String, TimeZoneInfo> mTimeZonesById;
+
+    private final boolean[] mHasTimeZonesInHrOffset = new boolean[40];
+
     SparseArray<ArrayList<Integer>> mTimeZonesByOffsets;
-    private Context mContext;
-    private String mPalestineDisplayName;
+
+    private final Context mContext;
+    private final String  mPalestineDisplayName;
 
     public TimeZoneData(Context context, String defaultTimeZoneId, long timeMillis) {
         mContext = context;
@@ -201,11 +206,8 @@ public class TimeZoneData {
 
             // /////////////////////
             // Grouping tz's by country for search by country
-            ArrayList<Integer> group = mTimeZonesByCountry.get(tz.mCountry);
-            if (group == null) {
-                group = new ArrayList<Integer>();
-                mTimeZonesByCountry.put(tz.mCountry, group);
-            }
+            ArrayList<Integer> group = mTimeZonesByCountry
+                    .computeIfAbsent(tz.mCountry, k -> new ArrayList<>());
 
             group.add(idx);
 
@@ -230,22 +232,16 @@ public class TimeZoneData {
     private void printTimeZones() {
         TimeZoneInfo last = null;
         boolean first = true;
-        for (TimeZoneInfo tz : mTimeZones) {
-            // All
-            if (false) {
-                Log.e("ALL", tz.toString());
-            }
 
+        for (TimeZoneInfo tz : mTimeZones) {
             // GMT
-            if (true) {
-                String name = tz.mTz.getDisplayName();
-                if (name.startsWith("GMT") && !tz.mTzId.startsWith("Etc/GMT")) {
-                    Log.e("GMT", tz.toString());
-                }
+            String name = tz.mTz.getDisplayName();
+            if (name.startsWith("GMT") && !tz.mTzId.startsWith("Etc/GMT")) {
+                Log.e("GMT", tz.toString());
             }
 
             // Dups
-            if (true && last != null) {
+            if (last != null) {
                 if (last.compareTo(tz) == 0) {
                     if (first) {
                         Log.e("SAME", last.toString());
@@ -258,6 +254,7 @@ public class TimeZoneData {
             }
             last = tz;
         }
+
         Log.e(TAG, "Total number of tz's = " + mTimeZones.size());
     }
 
@@ -277,7 +274,7 @@ public class TimeZoneData {
             if (tzi != null) {
                 tzi.mDisplayName = labels[i];
             } else {
-                Log.e(TAG, "Could not find timezone with label: "+labels[i]);
+                Log.e(TAG, "Could not find timezone with label: " + labels[i]);
             }
         }
     }
@@ -327,7 +324,7 @@ public class TimeZoneData {
 
             while ((line = reader.readLine()) != null) {
                 // Skip comment lines
-                if (!line.startsWith("#") && line.length() > 0) {
+                if (!line.startsWith("#") && !line.isEmpty()) {
                     // 0: "Link"
                     // 1: New tz id
                     // Last: Old tz id
@@ -420,7 +417,8 @@ public class TimeZoneData {
                         if (defaultTz != null) {
                             mDefaultTimeZoneInfo = new TimeZoneInfo(defaultTz, country);
 
-                            int tzToOverride = getIdenticalTimeZoneInTheCountry(mDefaultTimeZoneInfo);
+                            int tzToOverride =
+                                    getIdenticalTimeZoneInTheCountry(mDefaultTimeZoneInfo);
                             if (tzToOverride == -1) {
                                 if (DEBUG) {
                                     Log.e(TAG, "Adding default time zone: "
@@ -475,7 +473,7 @@ public class TimeZoneData {
         return processedTimeZones;
     }
 
-    private static Locale mBackupCountryLocale;
+    private static Locale   mBackupCountryLocale;
     private static String[] mBackupCountryCodes;
     private static String[] mBackupCountryNames;
 

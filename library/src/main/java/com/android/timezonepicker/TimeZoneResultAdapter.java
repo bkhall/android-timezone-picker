@@ -30,6 +30,7 @@ import android.widget.TextView;
 
 import com.android.timezonepicker.TimeZoneFilterTypeAdapter.OnSetFilterListener;
 import com.android.timezonepicker.TimeZonePickerView.OnTimeZoneSetListener;
+import com.tyganeutronics.timezonepicker.R;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -37,18 +38,20 @@ import java.util.LinkedHashSet;
 
 public class TimeZoneResultAdapter extends BaseAdapter implements OnItemClickListener,
         OnSetFilterListener {
-    private static final String TAG = "TimeZoneResultAdapter";
-    private static final boolean DEBUG = false;
-    private static final int VIEW_TAG_TIME_ZONE = R.id.time_zone;
-    private static final int EMPTY_INDEX = -100;
+    private static final String  TAG                = "TimeZoneResultAdapter";
+    private static final boolean DEBUG              = false;
+    private static final int     VIEW_TAG_TIME_ZONE = R.id.time_zone;
+    private static final int     EMPTY_INDEX        = -100;
 
-    /** SharedPref name and key for recent time zones */
-    private static final String SHARED_PREFS_NAME = "com.android.calendar_preferences";
+    /**
+     * SharedPref name and key for recent time zones
+     */
+    private static final String SHARED_PREFS_NAME    = "com.android.calendar_preferences";
     private static final String KEY_RECENT_TIMEZONES = "preferences_recent_timezones";
 
-    private int mLastFilterType;
+    private int    mLastFilterType;
     private String mLastFilterString;
-    private int mLastFilterTime;
+    private int    mLastFilterTime;
 
     private boolean mHasResults = false;
 
@@ -58,7 +61,9 @@ public class TimeZoneResultAdapter extends BaseAdapter implements OnItemClickLis
      */
     private static final String RECENT_TIMEZONES_DELIMITER = ",";
 
-    /** The maximum number of recent timezones to save */
+    /**
+     * The maximum number of recent timezones to save
+     */
     private static final int MAX_RECENT_TIMEZONES = 3;
 
     static class ViewHolder {
@@ -68,31 +73,32 @@ public class TimeZoneResultAdapter extends BaseAdapter implements OnItemClickLis
 
         static void setupViewHolder(View v) {
             ViewHolder vh = new ViewHolder();
-            vh.timeZone = (TextView) v.findViewById(R.id.time_zone);
-            vh.timeOffset = (TextView) v.findViewById(R.id.time_offset);
-            vh.location = (TextView) v.findViewById(R.id.location);
+            vh.timeZone = v.findViewById(R.id.time_zone);
+            vh.timeOffset = v.findViewById(R.id.time_offset);
+            vh.location = v.findViewById(R.id.location);
+
             v.setTag(vh);
         }
     }
 
-    private Context mContext;
-    private LayoutInflater mInflater;
+    private final Context        mContext;
+    private final LayoutInflater mInflater;
 
-    private OnTimeZoneSetListener mTimeZoneSetListener;
-    private TimeZoneData mTimeZoneData;
+    private final OnTimeZoneSetListener mTimeZoneSetListener;
+    private final TimeZoneData          mTimeZoneData;
 
-    private int[] mFilteredTimeZoneIndices;
-    private int mFilteredTimeZoneLength = 0;
+    private final int[] mFilteredTimeZoneIndices;
+    private       int   mFilteredTimeZoneLength = 0;
 
     public TimeZoneResultAdapter(Context context, TimeZoneData tzd,
-            com.android.timezonepicker.TimeZonePickerView.OnTimeZoneSetListener l) {
+                                 com.android.timezonepicker.TimeZonePickerView.OnTimeZoneSetListener l) {
         super();
 
         mContext = context;
         mTimeZoneData = tzd;
         mTimeZoneSetListener = l;
 
-        mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        mInflater = LayoutInflater.from(context);
 
         mFilteredTimeZoneIndices = new int[mTimeZoneData.size()];
 
@@ -201,8 +207,8 @@ public class TimeZoneResultAdapter extends BaseAdapter implements OnItemClickLis
             recentsString = id;
         } else {
             // De-dup
-            LinkedHashSet<String> recents = new LinkedHashSet<String>();
-            for(String tzId : recentsString.split(RECENT_TIMEZONES_DELIMITER)) {
+            LinkedHashSet<String> recents = new LinkedHashSet<>();
+            for (String tzId : recentsString.split(RECENT_TIMEZONES_DELIMITER)) {
                 if (!recents.contains(tzId) && !id.equals(tzId)) {
                     recents.add(tzId);
                 }
@@ -287,8 +293,19 @@ public class TimeZoneResultAdapter extends BaseAdapter implements OnItemClickLis
 
         vh.timeOffset.setText(tzi.getGmtDisplayName(mContext));
 
-        String location = tzi.mCountry;
-        if (location == null) {
+        String location = tzi.mTzId;
+        if (TextUtils.isEmpty(location)) {
+            location = tzi.mCountry;
+        } else {
+            int index = location.indexOf("/");
+            if (index > -1) {
+                location = location.substring(index + 1);
+
+                location = location.replace("_", " ");
+            }
+        }
+
+        if (TextUtils.isEmpty(location)) {
             vh.location.setVisibility(View.INVISIBLE);
         } else {
             vh.location.setText(location);
@@ -309,8 +326,8 @@ public class TimeZoneResultAdapter extends BaseAdapter implements OnItemClickLis
         if (mTimeZoneSetListener != null) {
             TimeZoneInfo tzi = (TimeZoneInfo) v.getTag(VIEW_TAG_TIME_ZONE);
             if (tzi != null) {
-              mTimeZoneSetListener.onTimeZoneSet(tzi);
-              saveRecentTimezone(tzi.mTzId);
+                mTimeZoneSetListener.onTimeZoneSet(tzi);
+                saveRecentTimezone(tzi.mTzId);
             }
         }
     }

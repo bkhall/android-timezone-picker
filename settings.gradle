@@ -1,4 +1,3 @@
 rootProject.name = "Timezone Picker"
 include ':sample'
 include ':library'
-include ':base-library'

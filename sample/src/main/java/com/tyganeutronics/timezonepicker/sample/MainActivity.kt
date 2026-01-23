@@ -13,15 +13,15 @@ import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
-import com.tyganeutronics.timezonepicker.TimeZoneInfo
-import com.tyganeutronics.timezonepicker.TimeZonePickerAppCompatFragment
-import com.tyganeutronics.timezonepicker.TimeZonePickerBaseFragment
+import com.android.timezonepicker.TimeZoneInfo
+import com.android.timezonepicker.TimeZonePickerDialog
 import com.tyganeutronics.timezonepicker.TimeZonePickerBottomSheetFragment
+import com.tyganeutronics.timezonepicker.TimeZonePickerDialogFragment
 import com.tyganeutronics.timezonepicker.TimeZonePickerFragment
 import java.time.ZonedDateTime
 
 class MainActivity : AppCompatActivity(), View.OnClickListener,
-    TimeZonePickerBaseFragment.OnTimeZoneSetListener {
+    TimeZonePickerDialog.OnTimeZoneSetListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,10 +61,13 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
 
                 R.id.btn_dialog_picker -> {
 
-                    val timeZonePickerDialog = TimeZonePickerAppCompatFragment()
+                    val timeZonePickerDialog = TimeZonePickerDialogFragment()
                     timeZonePickerDialog.arguments = this.fragmentArguments()
                     timeZonePickerDialog.setOnTimeZoneSetListener(this)
-                    timeZonePickerDialog.show(supportFragmentManager, TimeZonePickerAppCompatFragment.TAG)
+                    timeZonePickerDialog.show(
+                        supportFragmentManager,
+                        TimeZonePickerDialogFragment.TAG
+                    )
                 }
 
                 R.id.btn_privacy_policy -> {
@@ -80,11 +83,11 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
     private fun fragmentArguments(): Bundle {
         val args = Bundle()
         args.putLong(
-            TimeZonePickerBaseFragment.BUNDLE_START_TIME_MILLIS,
+            TimeZonePickerDialogFragment.BUNDLE_START_TIME_MILLIS,
             ZonedDateTime.now().toEpochSecond() * 1000
         )
         args.putString(
-            TimeZonePickerBaseFragment.BUNDLE_TIME_ZONE,
+            TimeZonePickerDialogFragment.BUNDLE_TIME_ZONE,
             ZonedDateTime.now().zone.id
         )
 

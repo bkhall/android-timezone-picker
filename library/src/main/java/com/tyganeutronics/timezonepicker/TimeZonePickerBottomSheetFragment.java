@@ -5,13 +5,14 @@ import android.os.Bundle;
 import android.view.Window;
 import android.view.WindowManager;
 
-import androidx.annotation.NonNull;
-
+import com.android.timezonepicker.TimeZonePickerDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
-public class TimeZonePickerBottomSheetFragment extends TimeZonePickerBaseFragment {
+import androidx.annotation.NonNull;
 
-    public final static String TAG = "TimeZonePickerBottomSheetFragment";
+public class TimeZonePickerBottomSheetFragment extends TimeZonePickerDialog {
+
+    public final static String TAG = TimeZonePickerBottomSheetFragment.class.getSimpleName();
 
     @NonNull
     @Override
@@ -19,7 +20,7 @@ public class TimeZonePickerBottomSheetFragment extends TimeZonePickerBaseFragmen
         Dialog dialog = new BottomSheetDialog(requireActivity(), getTheme());
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+
         return dialog;
     }
-
 }

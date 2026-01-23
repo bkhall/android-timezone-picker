@@ -28,39 +28,43 @@ import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.TextView;
 
+import com.tyganeutronics.timezonepicker.R;
+
 import java.util.ArrayList;
 import java.util.Collections;
 
+import androidx.annotation.NonNull;
+
 public class TimeZoneFilterTypeAdapter extends BaseAdapter implements Filterable, OnClickListener {
-    public static final String TAG = "TimeZoneFilterTypeAdapter";
+    public static final String TAG = TimeZoneFilterTypeAdapter.class.getSimpleName();
 
     private static final boolean DEBUG = false;
 
-    public static final int FILTER_TYPE_EMPTY = -1;
-    public static final int FILTER_TYPE_NONE = 0;
+    public static final int FILTER_TYPE_EMPTY   = -1;
+    public static final int FILTER_TYPE_NONE    = 0;
     public static final int FILTER_TYPE_COUNTRY = 1;
-    public static final int FILTER_TYPE_STATE = 2;
-    public static final int FILTER_TYPE_GMT = 3;
+    public static final int FILTER_TYPE_STATE   = 2;
+    public static final int FILTER_TYPE_GMT     = 3;
 
     public interface OnSetFilterListener {
         void onSetFilter(int filterType, String str, int time);
     }
 
     static class ViewHolder {
-        int filterType;
-        String str;
-        int time;
+        int      filterType;
+        String   str;
+        int      time;
         TextView strTextView;
 
         static void setupViewHolder(View v) {
             ViewHolder vh = new ViewHolder();
-            vh.strTextView = (TextView) v.findViewById(R.id.value);
+            vh.strTextView = v.findViewById(R.id.value);
             v.setTag(vh);
         }
     }
 
-    class FilterTypeResult {
-        int type;
+    public static class FilterTypeResult {
+        int    type;
         String constraint;
         public int time;
 
@@ -70,26 +74,26 @@ public class TimeZoneFilterTypeAdapter extends BaseAdapter implements Filterable
             this.time = time;
         }
 
+        @NonNull
         @Override
         public String toString() {
             return constraint;
         }
     }
 
-    private ArrayList<FilterTypeResult> mLiveResults = new ArrayList<FilterTypeResult>();
-    private int mLiveResultsCount = 0;
+    private ArrayList<FilterTypeResult> mLiveResults      = new ArrayList<>();
+    private int                         mLiveResultsCount = 0;
 
     private ArrayFilter mFilter;
 
-    private LayoutInflater mInflater;
-
-    private TimeZoneData mTimeZoneData;
-    private OnSetFilterListener mListener;
+    private final LayoutInflater      mInflater;
+    private final TimeZoneData        mTimeZoneData;
+    private final OnSetFilterListener mListener;
 
     public TimeZoneFilterTypeAdapter(Context context, TimeZoneData tzd, OnSetFilterListener l) {
         mTimeZoneData = tzd;
         mListener = l;
-        mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        mInflater = LayoutInflater.from(context);
     }
 
     @Override
@@ -133,11 +137,7 @@ public class TimeZoneFilterTypeAdapter extends BaseAdapter implements Filterable
         return v;
     }
 
-    OnClickListener mDummyListener = new OnClickListener() {
-
-        @Override
-        public void onClick(View v) {
-        }
+    OnClickListener mDummyListener = v -> {
     };
 
     // Implements OnClickListener
@@ -220,7 +220,7 @@ public class TimeZoneFilterTypeAdapter extends BaseAdapter implements Filterable
                             || (lowerCaseCountry.charAt(0) == prefixString.charAt(0) &&
                             isStartingInitialsFor(prefixString, lowerCaseCountry))) {
                         isMatch = true;
-                    } else if (lowerCaseCountry.contains(" ")){
+                    } else if (lowerCaseCountry.contains(" ")) {
                         // We should also search other words in the country name, so that
                         // searches like "Korea" yield "South Korea".
                         for (String word : lowerCaseCountry.split(" ")) {
@@ -260,7 +260,7 @@ public class TimeZoneFilterTypeAdapter extends BaseAdapter implements Filterable
          * this method will return true even if prefixString does not cover all
          * the words. Words are separated by non-letters which includes spaces
          * and symbols).
-         *
+         * <p>
          * For example:
          * isStartingInitialsFor("UA", "United Arab Emirates") would return true
          * isStartingInitialsFor("US", "U.S. Virgin Island") would return true
@@ -293,14 +293,11 @@ public class TimeZoneFilterTypeAdapter extends BaseAdapter implements Filterable
             }
 
             // Special case for "USA". Note that both strings have been turned to lowercase already.
-            if (prefixString.equals("usa") && string.equals("united states")) {
-                return true;
-            }
-            return false;
+            return prefixString.equals("usa") && string.equals("united states");
         }
 
         private void handleSearchByGmt(ArrayList<FilterTypeResult> filtered, int num,
-                boolean positiveOnly) {
+                                       boolean positiveOnly) {
 
             FilterTypeResult r;
             if (num >= 0) {

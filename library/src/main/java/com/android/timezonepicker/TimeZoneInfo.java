@@ -22,49 +22,68 @@ import android.text.Spannable.Factory;
 import android.text.format.DateUtils;
 import android.text.format.Time;
 import android.text.style.ForegroundColorSpan;
-import android.util.Log;
 import android.util.SparseArray;
 
-import java.lang.reflect.Field;
 import java.text.DateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Formatter;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import androidx.annotation.NonNull;
+
 public class TimeZoneInfo implements Comparable<TimeZoneInfo> {
-    private static final int GMT_TEXT_COLOR = TimeZonePickerUtils.GMT_TEXT_COLOR;
-    private static final int DST_SYMBOL_COLOR = TimeZonePickerUtils.DST_SYMBOL_COLOR;
-    private static final char SEPARATOR = ',';
-    private static final String TAG = null;
-    public static int NUM_OF_TRANSITIONS = 6;
-    public static long time = System.currentTimeMillis() / 1000;
-    public static boolean is24HourFormat;
-    private static final Factory mSpannableFactory = Spannable.Factory.getInstance();
+    private static final int     GMT_TEXT_COLOR     = TimeZonePickerUtils.GMT_TEXT_COLOR;
+    private static final int     DST_SYMBOL_COLOR   = TimeZonePickerUtils.DST_SYMBOL_COLOR;
+    private static final char    SEPARATOR          = ',';
+    private static final String  TAG                = null;
+    public static        int     NUM_OF_TRANSITIONS = 6;
+    public static        long    time               = System.currentTimeMillis() / 1000;
+    public static        boolean is24HourFormat;
+    private static final Factory mSpannableFactory  = Spannable.Factory.getInstance();
 
     TimeZone mTz;
     public String mTzId;
-    int mRawoffset;
+    int mRawOffset;
     public String mCountry;
-    public int groupId;
+    public int    groupId;
     public String mDisplayName;
-    private Time recycledTime = new Time();
-    private static StringBuilder mSB = new StringBuilder(50);
-    private static Formatter mFormatter = new Formatter(mSB, Locale.getDefault());
+
+    private final        Time          recycledTime = new Time();
+    private static final StringBuilder mSB          = new StringBuilder(50);
+    private static final Formatter     mFormatter   = new Formatter(mSB, Locale.getDefault());
 
     public TimeZoneInfo(TimeZone tz, String country) {
         mTz = tz;
         mTzId = tz.getID();
         mCountry = country;
-        mRawoffset = tz.getRawOffset();
+        mRawOffset = tz.getRawOffset();
     }
 
-    SparseArray<String> mLocalTimeCache = new SparseArray<String>();
+    SparseArray<String> mLocalTimeCache = new SparseArray<>();
+
     long mLocalTimeCacheReferenceTime = 0;
+
     static private long mGmtDisplayNameUpdateTime;
-    static private SparseArray<CharSequence> mGmtDisplayNameCache =
-            new SparseArray<CharSequence>();
+
+    static private final SparseArray<CharSequence> mGmtDisplayNameCache =
+            new SparseArray<>();
+
+    public String getTzId() {
+        return mTzId;
+    }
+
+    public String getCountry() {
+        return mCountry;
+    }
+
+    public int getGroupId() {
+        return groupId;
+    }
+
+    public String getDisplayName() {
+        return mDisplayName;
+    }
 
     public String getLocalTime(long referenceTime) {
         recycledTime.timezone = TimeZone.getDefault().getID();
@@ -190,6 +209,7 @@ public class TimeZoneInfo implements Comparable<TimeZoneInfo> {
         return this.mTz.hasSameRules(tzi.mTz);
     }
 
+    @NonNull
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -277,6 +297,5 @@ public class TimeZoneInfo implements Comparable<TimeZoneInfo> {
 
         return this.mTz.getDisplayName(Locale.getDefault()).compareTo(
                 other.mTz.getDisplayName(Locale.getDefault()));
-
     }
 }

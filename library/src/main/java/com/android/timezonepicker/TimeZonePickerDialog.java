@@ -18,6 +18,7 @@ package com.android.timezonepicker;
 
 import android.app.Dialog;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -60,30 +61,37 @@ public class TimeZonePickerDialog extends DialogFragment implements
                              Bundle savedInstanceState) {
         long timeMillis = 0;
         String timeZone = null;
+
         Bundle b = getArguments();
         if (b != null) {
             timeMillis = b.getLong(BUNDLE_START_TIME_MILLIS);
             timeZone = b.getString(BUNDLE_TIME_ZONE);
         }
+
         boolean hideFilterSearch = false;
 
         if (savedInstanceState != null) {
             hideFilterSearch = savedInstanceState.getBoolean(KEY_HIDE_FILTER_SEARCH);
         }
-        mView = new TimeZonePickerView(getActivity(), null, timeZone, timeMillis, this,
+
+        mView = new TimeZonePickerView(requireContext(), timeZone, timeMillis, this,
                 hideFilterSearch);
+
         if (savedInstanceState != null && savedInstanceState.getBoolean(KEY_HAS_RESULTS, false)) {
             mView.showFilterResults(savedInstanceState.getInt(KEY_LAST_FILTER_TYPE),
                     savedInstanceState.getString(KEY_LAST_FILTER_STRING),
                     savedInstanceState.getInt(KEY_LAST_FILTER_TIME));
         }
+
         return mView;
     }
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
+
         outState.putBoolean(KEY_HAS_RESULTS, mView != null && mView.hasResults());
+
         if (mView != null) {
             outState.putInt(KEY_LAST_FILTER_TYPE, mView.getLastFilterType());
             outState.putString(KEY_LAST_FILTER_STRING, mView.getLastFilterString());
@@ -92,12 +100,30 @@ public class TimeZonePickerDialog extends DialogFragment implements
         }
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        if (!getShowsDialog()) {
+            return;
+        }
+
+        DisplayMetrics metrics = getResources().getDisplayMetrics();
+
+        WindowManager.LayoutParams params = getDialog().getWindow().getAttributes();
+        params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+        params.width = (int) (metrics.widthPixels * 0.875);
+
+        getDialog().getWindow().setAttributes(params);
+    }
+
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         Dialog dialog = super.onCreateDialog(savedInstanceState);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+
         return dialog;
     }
 
@@ -106,6 +132,7 @@ public class TimeZonePickerDialog extends DialogFragment implements
         if (mTimeZoneSetListener != null) {
             mTimeZoneSetListener.onTimeZoneSet(tzi);
         }
+
         dismiss();
     }
 }
