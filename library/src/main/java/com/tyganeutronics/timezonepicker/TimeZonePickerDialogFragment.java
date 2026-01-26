@@ -5,11 +5,13 @@ import android.util.DisplayMetrics;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 
+import com.android.timezonepicker.TimeZonePickerDialog;
+
 import java.util.TimeZone;
 
 import androidx.annotation.Nullable;
 
-public class TimeZonePickerDialogFragment extends com.android.timezonepicker.TimeZonePickerDialog {
+public class TimeZonePickerDialogFragment extends TimeZonePickerDialog {
 
     public final static String TAG = TimeZonePickerDialogFragment.class.getSimpleName();
 
