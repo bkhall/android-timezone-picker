@@ -74,12 +74,6 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Initialize git submodules
-      if: steps.version_check.outputs.changed == 'true' && steps.tag_check.outputs.exists == 'false'
-      run: |
-        git submodule sync --recursive
-        git submodule update --init --recursive
-
     - name: Grant execute permission for gradlew
       if: steps.version_check.outputs.changed == 'true' && steps.tag_check.outputs.exists == 'false'
       run: chmod +x gradlew

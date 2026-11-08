@@ -26,7 +26,7 @@ This library relies on files from different sources i.e
 
 1. [Google timezone picker](https://android.googlesource.com/platform/frameworks/opt/timezonepicker)
    which just provides the picker interface
-    - Added as a submodule to this repository for easier tracking
+    - Its code has been brought into this repository (`library/`) and migrated to AndroidX
     - Needs to use appcompat views to support dark and light mode
     - Needs [zone.tab](https://data.iana.org/time-zones/tzdb/zone.tab)
       and [backward](https://data.iana.org/time-zones/tzdb/backward) for the timezone data.
