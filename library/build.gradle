@@ -1,32 +1,32 @@
+import de.undercouch.gradle.tasks.download.Download
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id 'com.android.library'
-    id 'org.jetbrains.kotlin.android'
     id "de.undercouch.download"
     id 'maven-publish'
 }
 
 android {
-    namespace 'com.tyganeutronics.timezonepicker'
-    compileSdkVersion 36
+    namespace = 'com.tyganeutronics.timezonepicker'
+    compileSdk = 37
 
     defaultConfig {
-        minSdk 26
+        minSdk = 26
 
         consumerProguardFiles "consumer-rules.pro"
     }
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled = false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_21
-        targetCompatibility JavaVersion.VERSION_21
-    }
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     publishing {
@@ -35,35 +35,44 @@ android {
         }
     }
     lint {
-        targetSdk 36
+        targetSdk = 37
     }
     testOptions {
-        targetSdk 36
+        targetSdk = 37
+    }
+}
+
+kotlin {
+    // Keep the published kotlin-stdlib version independent of the compiler version, so apps
+    // using older Kotlin compilers can still consume this library.
+    coreLibrariesVersion = '2.2.20'
+
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_21
     }
 }
 
 dependencies {
-    api 'androidx.appcompat:appcompat:1.7.1'
-    api 'com.google.android.material:material:1.13.0'
-    api 'androidx.core:core-ktx:1.17.0'
+    api 'androidx.appcompat:appcompat:1.8.0'
+    api 'com.google.android.material:material:1.14.0'
+    api 'androidx.core:core-ktx:1.19.1'
 }
 
-tasks.register('downloadTimeZoneData') {
-    // Download timezone data files
-    download.run {
-        src([
-                'https://raw.githubusercontent.com/eggert/tz/main/backward',
-                'https://raw.githubusercontent.com/eggert/tz/main/zone.tab'
-        ])
+// Download timezone data files when the task runs, not while Gradle configures the project
+def downloadTimeZoneData = tasks.register('downloadTimeZoneData', Download) {
+    src([
+            'https://raw.githubusercontent.com/eggert/tz/main/backward',
+            'https://raw.githubusercontent.com/eggert/tz/main/zone.tab'
+    ])
 
-        // Use a project-relative path to avoid Windows absolute path issues
-        dest new File(project.projectDir, 'src/main/assets')
-        onlyIfModified true
-        useETag 'all'
-    }
+    dest layout.projectDirectory.dir('src/main/assets')
+    onlyIfModified true
+    useETag 'all'
 }
 
-preBuild.dependsOn downloadTimeZoneData
+tasks.named('preBuild') {
+    dependsOn downloadTimeZoneData
+}
 
 publishing {
     publications {

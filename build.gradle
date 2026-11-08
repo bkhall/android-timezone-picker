@@ -1,6 +1,6 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
-    ext.kotlin_version = '2.2.20'
+    ext.kotlin_version = '2.4.21'
     ext.library_version = '1.0.12'
 
     repositories {
@@ -9,11 +9,9 @@ buildscript {
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:9.0.0'
-        classpath 'com.google.gms:google-services:4.4.4'
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:3.0.6'
+        classpath 'com.android.tools.build:gradle:9.5.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "de.undercouch:gradle-download-task:5.6.0"
+        classpath "de.undercouch:gradle-download-task:5.7.0"
     }
 }
 
@@ -21,11 +19,11 @@ allprojects {
     repositories {
         mavenLocal()
         mavenCentral()
-        maven { url 'https://jitpack.io' }
+        maven { url = 'https://jitpack.io' }
         google()
     }
 
-    version = "$library_version"
+    version = rootProject.ext.library_version
     group = 'com.github.richard-muvirimi'
 }
 
@@ -36,5 +34,5 @@ if (System.getenv("JITPACK")) {
 }
 
 tasks.register('clean', Delete) {
-    delete getLayout().getBuildDirectory()
+    delete layout.buildDirectory
 }

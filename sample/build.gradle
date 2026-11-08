@@ -1,48 +1,49 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
 }
 
 android {
-    compileSdkVersion 36
+    namespace = 'com.tyganeutronics.timezonepicker.sample'
+    compileSdk = 37
 
     defaultConfig {
-        applicationId "com.tyganeutronics.timezonepicker.sample"
-        minSdk 26
-        targetSdk 36
-        versionCode 7
-        versionName "$library_version"
+        applicationId = "com.tyganeutronics.timezonepicker.sample"
+        minSdk = 26
+        targetSdk = 37
+        versionCode = 7
+        versionName = rootProject.ext.library_version
     }
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled = false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
     compileOptions {
-        coreLibraryDesugaringEnabled true
+        coreLibraryDesugaringEnabled = true
 
-        sourceCompatibility JavaVersion.VERSION_21
-        targetCompatibility JavaVersion.VERSION_21
-    }
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     buildFeatures {
-        buildConfig true
+        buildConfig = true
     }
+}
 
-    namespace 'com.tyganeutronics.timezonepicker.sample'
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_21
+    }
 }
 
 dependencies {
 
     //desugaring
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
-
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
     implementation project(path: ':library')
 }
