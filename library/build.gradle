@@ -58,20 +58,53 @@ dependencies {
     api 'androidx.core:core-ktx:1.19.1'
 }
 
+// data.iana.org/time-zones/tzdb/ always holds the latest official tzdb release; the eggert/tz
+// main branch is unreleased development data and can change before it is released.
+def tzdbUrl = 'https://data.iana.org/time-zones/tzdb'
+// Records which tzdb release the bundled zone.tab and backward assets come from (e.g. "2026f").
+// Kept out of src/main/assets so it isn't packaged into every app that uses the library.
+def tzdbVersionFile = layout.projectDirectory.file('tzdb.version').asFile
+
 // Download timezone data files when the task runs, not while Gradle configures the project
 def downloadTimeZoneData = tasks.register('downloadTimeZoneData', Download) {
-    src([
-            'https://raw.githubusercontent.com/eggert/tz/main/backward',
-            'https://raw.githubusercontent.com/eggert/tz/main/zone.tab'
-    ])
+    description = 'Downloads zone.tab and backward from the latest tzdb release and records its version.'
+    src(["$tzdbUrl/backward", "$tzdbUrl/zone.tab", "$tzdbUrl/version"])
 
-    dest layout.projectDirectory.dir('src/main/assets')
-    onlyIfModified true
-    useETag 'all'
+    // Download all three together, then copy them into place, so the recorded version always
+    // matches the data
+    dest layout.buildDirectory.dir('tzdb')
+    // Always fetch (the files are small). onlyIfModified compares the server's Last-Modified with
+    // the local file time, and a fresh checkout is always newer, so CI would never pick up a release.
+    overwrite true
+
+    def assetsDir = layout.projectDirectory.dir('src/main/assets').asFile
+    doLast {
+        ['backward', 'zone.tab'].each { name ->
+            new File(assetsDir, name).bytes = new File(dest, name).bytes
+        }
+        tzdbVersionFile.text = new File(dest, 'version').text
+    }
 }
 
 tasks.named('preBuild') {
     dependsOn downloadTimeZoneData
+}
+
+// ./gradlew :library:checkTimeZoneData fails when a newer tzdb release than the bundled one exists
+tasks.register('checkTimeZoneData') {
+    description = 'Checks that the bundled tz data (tzdb.version) is the latest tzdb release.'
+    group = 'verification'
+
+    def latestVersionUrl = "$tzdbUrl/version"
+    doLast {
+        def bundled = tzdbVersionFile.exists() ? tzdbVersionFile.text.trim() : 'unknown'
+        def latest = URI.create(latestVersionUrl).toURL().text.trim()
+        if (bundled != latest) {
+            throw new GradleException("Bundled tz data is ${bundled}, but tzdb ${latest} is " +
+                    "available. Run ./gradlew :library:downloadTimeZoneData and commit the changes.")
+        }
+        logger.lifecycle("Bundled tz data is the latest tzdb release (${latest}).")
+    }
 }
 
 publishing {

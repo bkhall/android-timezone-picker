@@ -21,12 +21,12 @@ import android.content.res.Resources;
 import android.text.Spannable;
 import android.text.Spannable.Factory;
 import android.text.format.DateUtils;
-import android.text.format.Time;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 
 import com.tyganeutronics.timezonepicker.R;
 
+import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -82,12 +82,9 @@ public class TimeZonePickerUtils {
     }
 
     private CharSequence buildGmtDisplayName(TimeZone tz, long timeMillis, boolean grayGmt) {
-        Time time = new Time(tz.getID());
-        time.set(timeMillis);
-
         StringBuilder sb = new StringBuilder();
 
-        String displayName = getDisplayName(tz, time.isDst != 0);
+        String displayName = getDisplayName(tz, tz.inDaylightTime(new Date(timeMillis)));
         sb.append(displayName);
 
         sb.append("  ");

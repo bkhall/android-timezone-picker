@@ -35,6 +35,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IllformedLocaleException;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -60,6 +61,8 @@ public class TimeZoneData {
     private       String                        mAlternateDefaultTimeZoneId;
     private       String                        mDefaultTimeZoneCountry;
     private       HashMap<String, TimeZoneInfo> mTimeZonesById;
+    // Old (alias) time zone id -> current id, from the 'backward' file
+    private final HashMap<String, String>       mBackwardLinks = new HashMap<>();
 
     private final boolean[] mHasTimeZonesInHrOffset = new boolean[40];
 
@@ -108,8 +111,20 @@ public class TimeZoneData {
         return mTimeZones.indexOf(mDefaultTimeZoneInfo);
     }
 
-    // TODO speed this up
+    /**
+     * Returns the index of the given time zone, also accepting old alias ids (e.g.
+     * Asia/Calcutta for Asia/Kolkata), or -1 if it is not in the list.
+     */
     public int findIndexByTimeZoneIdSlow(String timeZoneId) {
+        int idx = indexOfTimeZoneId(timeZoneId);
+        if (idx == -1 && mBackwardLinks.containsKey(timeZoneId)) {
+            idx = indexOfTimeZoneId(mBackwardLinks.get(timeZoneId));
+        }
+        return idx;
+    }
+
+    // TODO speed this up
+    private int indexOfTimeZoneId(String timeZoneId) {
         int idx = 0;
         for (TimeZoneInfo tzi : mTimeZones) {
             if (timeZoneId.equals(tzi.mTzId)) {
@@ -323,30 +338,29 @@ public class TimeZoneData {
             String line;
 
             while ((line = reader.readLine()) != null) {
-                // Skip comment lines
-                if (!line.startsWith("#") && !line.isEmpty()) {
+                // Drop comments, including trailing ones like "#= America/St_Thomas"
+                int commentStart = line.indexOf('#');
+                if (commentStart != -1) {
+                    line = line.substring(0, commentStart);
+                }
+
+                // Only "Link" lines map ids; the file also contains "Rule" lines
+                if (line.startsWith("Link")) {
                     // 0: "Link"
                     // 1: New tz id
-                    // Last: Old tz id
-                    String[] fields = line.split("\t+");
-                    String newTzId = fields[1];
-                    String oldTzId = fields[fields.length - 1];
-
-                    final TimeZone tz = TimeZone.getTimeZone(newTzId);
-                    if (tz == null) {
-                        Log.e(TAG, "Timezone not found: " + newTzId);
+                    // 2: Old tz id
+                    String[] fields = line.trim().split("\\s+");
+                    if (fields.length < 3) {
                         continue;
                     }
+                    String newTzId = fields[1];
+                    String oldTzId = fields[2];
 
                     processedTimeZones.add(oldTzId);
+                    mBackwardLinks.put(oldTzId, newTzId);
 
                     if (DEBUG) {
                         Log.e(TAG, "# Dropping identical time zone from backward: " + oldTzId);
-                    }
-
-                    // Remember the cooler/newer time zone id
-                    if (mDefaultTimeZoneId != null && mDefaultTimeZoneId.equals(oldTzId)) {
-                        mAlternateDefaultTimeZoneId = newTzId;
                     }
                 }
             }
@@ -368,95 +382,117 @@ public class TimeZoneData {
          * first, where that does not contradict (1)."
          */
         try {
-            String lang = Locale.getDefault().getLanguage();
             is = am.open("zone.tab");
             BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+
+            // Read every entry first, so we know whether the default id has its own entry
+            // before matching it against entries that come earlier in the file.
+            final ArrayList<String[]> entries = new ArrayList<>();
+            boolean defaultIdListed = false;
             String line;
             while ((line = reader.readLine()) != null) {
-                if (!line.startsWith("#")) { // Skip comment lines
-                    // 0: country code
-                    // 1: coordinates
-                    // 2: time zone id
-                    // 3: comments
-                    final String[] fields = line.split("\t");
-                    final String timeZoneId = fields[2];
-                    final String countryCode = fields[0];
-                    final TimeZone tz = TimeZone.getTimeZone(timeZoneId);
-                    if (tz == null) {
-                        Log.e(TAG, "Timezone not found: " + timeZoneId);
-                        continue;
-                    }
+                if (line.startsWith("#")) { // Skip comment lines
+                    continue;
+                }
+                // 0: country code
+                // 1: coordinates
+                // 2: time zone id
+                // 3: comments
+                final String[] fields = line.split("\t");
+                if (fields.length < 3) {
+                    continue;
+                }
+                entries.add(fields);
+                defaultIdListed |= fields[2].equals(mDefaultTimeZoneId);
+            }
 
-                    /*
-                     * Dropping non-GMT tzs without a country code. They are not
-                     * really needed and they are dups but missing proper
-                     * country codes. e.g. WET CET MST7MDT PST8PDT Asia/Khandyga
-                     * Asia/Ust-Nera EST
-                     */
-                    if (countryCode == null && !timeZoneId.startsWith("Etc/GMT")) {
-                        processedTimeZones.add(timeZoneId);
-                        continue;
-                    }
+            // 'backward' also links zones that were merged into another country's zone, e.g.
+            // Europe/Amsterdam -> Europe/Brussels. Only follow the link when zone.tab doesn't
+            // list the default id itself, or the default ends up in the other country.
+            if (!defaultIdListed && mBackwardLinks.containsKey(mDefaultTimeZoneId)) {
+                mAlternateDefaultTimeZoneId = mBackwardLinks.get(mDefaultTimeZoneId);
+            }
 
-                    // Remember the mapping between the country code and display
-                    // name
-                    String country = mCountryCodeToNameMap.get(countryCode);
-                    if (country == null) {
-                        country = getCountryNames(lang, countryCode);
-                        mCountryCodeToNameMap.put(countryCode, country);
-                    }
+            for (String[] fields : entries) {
+                final String timeZoneId = fields[2];
+                final String countryCode = fields[0];
+                final TimeZone tz = TimeZone.getTimeZone(timeZoneId);
+                // getTimeZone() returns GMT for ids this device doesn't know, which happens
+                // when the bundled zone.tab is newer than the device's time zone data.
+                if (!timeZoneId.equals(tz.getID())) {
+                    Log.w(TAG, "Timezone not found: " + timeZoneId);
+                    continue;
+                }
 
-                    // TODO Don't like this here but need to get the country of
-                    // the default tz.
+                /*
+                 * Dropping non-GMT tzs without a country code. They are not
+                 * really needed and they are dups but missing proper
+                 * country codes. e.g. WET CET MST7MDT PST8PDT Asia/Khandyga
+                 * Asia/Ust-Nera EST
+                 */
+                if (countryCode == null && !timeZoneId.startsWith("Etc/GMT")) {
+                    processedTimeZones.add(timeZoneId);
+                    continue;
+                }
 
-                    // Find the country of the default tz
-                    if (mDefaultTimeZoneId != null && mDefaultTimeZoneCountry == null
-                            && timeZoneId.equals(mAlternateDefaultTimeZoneId)) {
-                        mDefaultTimeZoneCountry = country;
-                        TimeZone defaultTz = TimeZone.getTimeZone(mDefaultTimeZoneId);
-                        if (defaultTz != null) {
-                            mDefaultTimeZoneInfo = new TimeZoneInfo(defaultTz, country);
+                // Remember the mapping between the country code and display
+                // name
+                String country = mCountryCodeToNameMap.get(countryCode);
+                if (country == null) {
+                    country = getCountryNames(countryCode);
+                    mCountryCodeToNameMap.put(countryCode, country);
+                }
 
-                            int tzToOverride =
-                                    getIdenticalTimeZoneInTheCountry(mDefaultTimeZoneInfo);
-                            if (tzToOverride == -1) {
-                                if (DEBUG) {
-                                    Log.e(TAG, "Adding default time zone: "
-                                            + mDefaultTimeZoneInfo.toString());
-                                }
-                                mTimeZones.add(mDefaultTimeZoneInfo);
-                            } else {
-                                mTimeZones.add(tzToOverride, mDefaultTimeZoneInfo);
-                                if (DEBUG) {
-                                    TimeZoneInfo tzInfoToOverride = mTimeZones.get(tzToOverride);
-                                    String tzIdToOverride = tzInfoToOverride.mTzId;
-                                    Log.e(TAG, "Replaced by default tz: "
-                                            + tzInfoToOverride.toString());
-                                    Log.e(TAG, "Adding default time zone: "
-                                            + mDefaultTimeZoneInfo.toString());
-                                }
+                // TODO Don't like this here but need to get the country of
+                // the default tz.
+
+                // Find the country of the default tz
+                if (mDefaultTimeZoneId != null && mDefaultTimeZoneCountry == null
+                        && timeZoneId.equals(mAlternateDefaultTimeZoneId)) {
+                    mDefaultTimeZoneCountry = country;
+                    TimeZone defaultTz = TimeZone.getTimeZone(mDefaultTimeZoneId);
+                    if (defaultTz != null) {
+                        mDefaultTimeZoneInfo = new TimeZoneInfo(defaultTz, country);
+
+                        int tzToOverride =
+                                getIdenticalTimeZoneInTheCountry(mDefaultTimeZoneInfo);
+                        if (tzToOverride == -1) {
+                            if (DEBUG) {
+                                Log.e(TAG, "Adding default time zone: "
+                                        + mDefaultTimeZoneInfo.toString());
+                            }
+                            mTimeZones.add(mDefaultTimeZoneInfo);
+                        } else {
+                            mTimeZones.add(tzToOverride, mDefaultTimeZoneInfo);
+                            if (DEBUG) {
+                                TimeZoneInfo tzInfoToOverride = mTimeZones.get(tzToOverride);
+                                String tzIdToOverride = tzInfoToOverride.mTzId;
+                                Log.e(TAG, "Replaced by default tz: "
+                                        + tzInfoToOverride.toString());
+                                Log.e(TAG, "Adding default time zone: "
+                                        + mDefaultTimeZoneInfo.toString());
                             }
                         }
                     }
-
-                    // Add to the list of time zones if the time zone is unique
-                    // in the given country.
-                    TimeZoneInfo timeZoneInfo = new TimeZoneInfo(tz, country);
-                    int identicalTzIdx = getIdenticalTimeZoneInTheCountry(timeZoneInfo);
-                    if (identicalTzIdx == -1) {
-                        if (DEBUG) {
-                            Log.e(TAG, "# Adding time zone: " + timeZoneId + " ## " +
-                                    tz.getDisplayName());
-                        }
-                        mTimeZones.add(timeZoneInfo);
-                    } else {
-                        if (DEBUG) {
-                            Log.e(TAG, "# Dropping identical time zone: " + timeZoneId + " ## " +
-                                    tz.getDisplayName());
-                        }
-                    }
-                    processedTimeZones.add(timeZoneId);
                 }
+
+                // Add to the list of time zones if the time zone is unique
+                // in the given country.
+                TimeZoneInfo timeZoneInfo = new TimeZoneInfo(tz, country);
+                int identicalTzIdx = getIdenticalTimeZoneInTheCountry(timeZoneInfo);
+                if (identicalTzIdx == -1) {
+                    if (DEBUG) {
+                        Log.e(TAG, "# Adding time zone: " + timeZoneId + " ## " +
+                                tz.getDisplayName());
+                    }
+                    mTimeZones.add(timeZoneInfo);
+                } else {
+                    if (DEBUG) {
+                        Log.e(TAG, "# Dropping identical time zone: " + timeZoneId + " ## " +
+                                tz.getDisplayName());
+                    }
+                }
+                processedTimeZones.add(timeZoneId);
             }
 
         } catch (IOException ex) {
@@ -477,13 +513,20 @@ public class TimeZoneData {
     private static String[] mBackupCountryCodes;
     private static String[] mBackupCountryNames;
 
-    private String getCountryNames(String lang, String countryCode) {
+    private String getCountryNames(String countryCode) {
         final Locale defaultLocale = Locale.getDefault();
         String countryDisplayName;
         if (PALESTINE_COUNTRY_CODE.equalsIgnoreCase(countryCode)) {
             countryDisplayName = mPalestineDisplayName;
         } else {
-            countryDisplayName = new Locale(lang, countryCode).getDisplayCountry(defaultLocale);
+            // Only the region matters for getDisplayCountry(); zone.tab codes are ISO 3166
+            try {
+                countryDisplayName = new Locale.Builder().setRegion(countryCode).build()
+                        .getDisplayCountry(defaultLocale);
+            } catch (IllformedLocaleException e) {
+                // Falls through to the backup names below
+                countryDisplayName = countryCode;
+            }
         }
 
         if (!countryCode.equals(countryDisplayName)) {

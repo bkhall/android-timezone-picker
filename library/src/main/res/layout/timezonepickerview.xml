@@ -41,12 +41,6 @@
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <ImageButton
-        android:id="@+id/clear_search"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone" />
-
     <ListView
         android:id="@+id/timezonelist"
         android:layout_width="match_parent"

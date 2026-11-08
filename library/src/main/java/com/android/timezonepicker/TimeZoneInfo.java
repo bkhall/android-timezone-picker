@@ -20,11 +20,17 @@ import android.content.Context;
 import android.text.Spannable;
 import android.text.Spannable.Factory;
 import android.text.format.DateUtils;
-import android.text.format.Time;
 import android.text.style.ForegroundColorSpan;
 import android.util.SparseArray;
 
 import java.text.DateFormat;
+import java.time.DateTimeException;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Formatter;
 import java.util.Locale;
@@ -43,21 +49,32 @@ public class TimeZoneInfo implements Comparable<TimeZoneInfo> {
     private static final Factory mSpannableFactory  = Spannable.Factory.getInstance();
 
     TimeZone mTz;
+    private final ZoneId mZoneId;
     public String mTzId;
     int mRawOffset;
     public String mCountry;
     public int    groupId;
     public String mDisplayName;
 
-    private final        Time          recycledTime = new Time();
     private static final StringBuilder mSB          = new StringBuilder(50);
     private static final Formatter     mFormatter   = new Formatter(mSB, Locale.getDefault());
 
     public TimeZoneInfo(TimeZone tz, String country) {
         mTz = tz;
+        mZoneId = toZoneId(tz);
         mTzId = tz.getID();
         mCountry = country;
         mRawOffset = tz.getRawOffset();
+    }
+
+    private static ZoneId toZoneId(TimeZone tz) {
+        try {
+            return tz.toZoneId();
+        } catch (DateTimeException e) {
+            // Every zone in the list gets a TimeZoneInfo, so one id that java.time can't map
+            // must not break the whole picker. Fall back to the zone's standard offset.
+            return ZoneOffset.ofTotalSeconds(tz.getRawOffset() / 1000);
+        }
     }
 
     SparseArray<String> mLocalTimeCache = new SparseArray<>();
@@ -86,18 +103,13 @@ public class TimeZoneInfo implements Comparable<TimeZoneInfo> {
     }
 
     public String getLocalTime(long referenceTime) {
-        recycledTime.timezone = TimeZone.getDefault().getID();
-        recycledTime.set(referenceTime);
-
-        int currYearDay = recycledTime.year * 366 + recycledTime.yearDay;
-
-        recycledTime.timezone = mTzId;
-        recycledTime.set(referenceTime);
+        Instant instant = Instant.ofEpochMilli(referenceTime);
+        LocalDate deviceDate = instant.atZone(ZoneId.systemDefault()).toLocalDate();
+        ZonedDateTime localTime = instant.atZone(mZoneId);
 
         String localTimeStr = null;
 
-        int hourMinute = recycledTime.hour * 60 +
-                recycledTime.minute;
+        int hourMinute = localTime.getHour() * 60 + localTime.getMinute();
 
         if (mLocalTimeCacheReferenceTime != referenceTime) {
             mLocalTimeCacheReferenceTime = referenceTime;
@@ -107,19 +119,18 @@ public class TimeZoneInfo implements Comparable<TimeZoneInfo> {
         }
 
         if (localTimeStr == null) {
-            String format = "%I:%M %p";
-            if (currYearDay != (recycledTime.year * 366 + recycledTime.yearDay)) {
+            String pattern = "hh:mm a";
+            if (!deviceDate.equals(localTime.toLocalDate())) {
                 if (is24HourFormat) {
-                    format = "%b %d %H:%M";
+                    pattern = "MMM dd HH:mm";
                 } else {
-                    format = "%b %d %I:%M %p";
+                    pattern = "MMM dd hh:mm a";
                 }
             } else if (is24HourFormat) {
-                format = "%H:%M";
+                pattern = "HH:mm";
             }
 
-            // format = "%Y-%m-%d %H:%M";
-            localTimeStr = recycledTime.format(format);
+            localTimeStr = localTime.format(DateTimeFormatter.ofPattern(pattern, Locale.getDefault()));
             mLocalTimeCache.put(hourMinute, localTimeStr);
         }
 
@@ -127,9 +138,7 @@ public class TimeZoneInfo implements Comparable<TimeZoneInfo> {
     }
 
     public int getLocalHr(long referenceTime) {
-        recycledTime.timezone = mTzId;
-        recycledTime.set(referenceTime);
-        return recycledTime.hour;
+        return Instant.ofEpochMilli(referenceTime).atZone(mZoneId).getHour();
     }
 
     public int getNowOffsetMillis() {
@@ -168,11 +177,9 @@ public class TimeZoneInfo implements Comparable<TimeZoneInfo> {
 
         if (displayName == null) {
             mSB.setLength(0);
+            // No 12/24-hour flag: formatDateRange applies the user's 12/24-hour setting itself.
             int flags = DateUtils.FORMAT_ABBREV_ALL;
             flags |= DateUtils.FORMAT_SHOW_TIME;
-            if (TimeZoneInfo.is24HourFormat) {
-                flags |= DateUtils.FORMAT_24HOUR;
-            }
 
             // mFormatter writes to mSB
             DateUtils.formatDateRange(context, mFormatter, now, now, flags, mTzId);

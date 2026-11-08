@@ -17,6 +17,7 @@
 package com.android.timezonepicker;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -27,6 +28,7 @@ import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
 
 public class TimeZonePickerDialog extends DialogFragment implements
         TimeZonePickerView.OnTimeZoneSetListener {
@@ -49,8 +51,27 @@ public class TimeZonePickerDialog extends DialogFragment implements
         void onTimeZoneSet(TimeZoneInfo tzi);
     }
 
+    /**
+     * Sets the listener for the selected time zone. A listener set here is not kept when the
+     * fragment is recreated (e.g. after a rotation); the picker then reports to its parent
+     * fragment or host activity if either implements {@link OnTimeZoneSetListener}.
+     */
     public void setOnTimeZoneSetListener(OnTimeZoneSetListener l) {
         mTimeZoneSetListener = l;
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+
+        if (mTimeZoneSetListener == null) {
+            Fragment parent = getParentFragment();
+            if (parent instanceof OnTimeZoneSetListener) {
+                mTimeZoneSetListener = (OnTimeZoneSetListener) parent;
+            } else if (context instanceof OnTimeZoneSetListener) {
+                mTimeZoneSetListener = (OnTimeZoneSetListener) context;
+            }
+        }
     }
 
     @Override
@@ -109,9 +130,25 @@ public class TimeZonePickerDialog extends DialogFragment implements
         Dialog dialog = super.onCreateDialog(savedInstanceState);
         dialog.setCanceledOnTouchOutside(false);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        setAdjustResize(dialog);
 
         return dialog;
+    }
+
+    /**
+     * Shrinks the dialog above the keyboard so the results list stays visible.
+     * <p>
+     * SOFT_INPUT_ADJUST_RESIZE is deprecated in favour of handling IME insets in an edge-to-edge
+     * window, but these dialog windows are not edge-to-edge (BottomSheetDialog manages that
+     * itself), and it still works for them. Without it the bottom sheet pans instead, and the
+     * keyboard covers the list.
+     */
+    @SuppressWarnings("deprecation")
+    protected static void setAdjustResize(@NonNull Dialog dialog) {
+        Window window = dialog.getWindow();
+        if (window != null) {
+            window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        }
     }
 
     @Override

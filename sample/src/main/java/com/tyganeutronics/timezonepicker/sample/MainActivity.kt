@@ -111,7 +111,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
 
     private fun applyWindowInsets() {
         // https://developer.android.com/develop/ui/views/layout/edge-to-edge#kotlin
-        val container = findViewById<CoordinatorLayout>(R.id.layout_container);
+        val container = findViewById<CoordinatorLayout>(R.id.layout_container)
 
         ViewCompat.setOnApplyWindowInsetsListener(container) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())

@@ -28,13 +28,11 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AutoCompleteTextView;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import com.tyganeutronics.timezonepicker.R;
 
-import java.time.ZoneId;
 import java.util.TimeZone;
 
 import androidx.annotation.Nullable;
@@ -50,8 +48,6 @@ public class TimeZonePickerView extends LinearLayout implements TextWatcher, OnI
     private       boolean                   mFirstTime               = true;
 
     TimeZoneResultAdapter mResultAdapter;
-
-    private final ImageButton mClearButton;
 
     public interface OnTimeZoneSetListener {
         void onTimeZoneSet(TimeZoneInfo tzi);
@@ -89,15 +85,14 @@ public class TimeZonePickerView extends LinearLayout implements TextWatcher, OnI
         mAutoCompleteTextView.setOnItemClickListener(this);
         mAutoCompleteTextView.setOnClickListener(this);
 
-        mClearButton = findViewById(R.id.clear_search);
-        mClearButton.setOnClickListener(v -> mAutoCompleteTextView.getEditableText().clear());
-
         if (showNearList) {
-            ZoneId zid = TimeZone.getDefault().toZoneId();
-            int index = tzd.findIndexByTimeZoneIdSlow(zid.getId());
-            TimeZoneInfo tzi = tzd.get(index);
-
-            mResultAdapter.onSetFilter(1, tzi.mCountry, 0);
+            // The device's zone may not be in the list (e.g. Etc/UTC), in which case the
+            // default list is shown instead.
+            int index = tzd.findIndexByTimeZoneIdSlow(TimeZone.getDefault().getID());
+            if (index != -1) {
+                mResultAdapter.onSetFilter(TimeZoneFilterTypeAdapter.FILTER_TYPE_COUNTRY,
+                        tzd.get(index).mCountry, 0);
+            }
         }
     }
 
@@ -120,7 +115,7 @@ public class TimeZonePickerView extends LinearLayout implements TextWatcher, OnI
     }
 
     public int getLastFilterTime() {
-        return mResultAdapter != null ? mResultAdapter.getLastFilterType() : -1;
+        return mResultAdapter != null ? mResultAdapter.getLastFilterTime() : -1;
     }
 
     public boolean getHideFilterSearchOnStart() {
@@ -147,9 +142,6 @@ public class TimeZonePickerView extends LinearLayout implements TextWatcher, OnI
     // Implementation of TextWatcher
     @Override
     public void afterTextChanged(Editable s) {
-        if (mClearButton != null) {
-            mClearButton.setVisibility(s.length() > 0 ? View.VISIBLE : View.GONE);
-        }
     }
 
     @Override

@@ -28,11 +28,15 @@ This library relies on files from different sources i.e
    which just provides the picker interface
     - Added as a submodule to this repository for easier tracking
     - Needs to use appcompat views to support dark and light mode
-    - Needs [zone.tab](https://github.com/eggert/tz/blob/main/zone.tab)
-      and [backward](https://github.com/eggert/tz/blob/main/backward) for the timezone data.
-2. [Time zone database](https://github.com/eggert/tz) for up-to date timezone data
+    - Needs [zone.tab](https://data.iana.org/time-zones/tzdb/zone.tab)
+      and [backward](https://data.iana.org/time-zones/tzdb/backward) for the timezone data.
+2. [Time zone database](https://www.iana.org/time-zones) for up-to date timezone data, taken
+   from the latest official release
    
-These additional dependencies are managed and updated by gradle on building the project
+These additional dependencies are managed and updated by gradle on building the project.
+The tzdb release the bundled data comes from is recorded in `library/tzdb.version`;
+`./gradlew :library:checkTimeZoneData` fails if a newer release is available, and
+`./gradlew :library:downloadTimeZoneData` updates the data and the recorded version.
 
 ### Automated Updates & Releases
 
@@ -45,7 +49,7 @@ This library is automatically kept up-to-date through an automated monthly relea
 #### 📅 **Release Schedule**
 - New releases are created **monthly** if no release was made in the previous 30 days
 - Version numbers follow semantic versioning (e.g., 1.0.8 → 1.0.9)
-- Each release includes the latest timezone data from [IANA Time Zone Database](https://github.com/eggert/tz)
+- Each release includes the latest released timezone data from the [IANA Time Zone Database](https://www.iana.org/time-zones)
 
 #### 🔄 **What Gets Updated**
 - **Timezone data files**: Downloaded fresh from the official IANA database

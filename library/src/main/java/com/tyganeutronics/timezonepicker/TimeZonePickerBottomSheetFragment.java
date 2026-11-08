@@ -3,7 +3,6 @@ package com.tyganeutronics.timezonepicker;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.view.Window;
-import android.view.WindowManager;
 
 import com.android.timezonepicker.TimeZonePickerDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -58,7 +57,7 @@ public class TimeZonePickerBottomSheetFragment extends TimeZonePickerDialog {
         Dialog dialog = new BottomSheetDialog(requireActivity(), getTheme());
         dialog.setCanceledOnTouchOutside(false);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        setAdjustResize(dialog);
 
         return dialog;
     }
